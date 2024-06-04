@@ -6,7 +6,7 @@ let getAll = (req, res) => {
       const limit = parseInt(req.query.limit) || 10;
       const start = parseInt(req.query.start) || 0;
 
-      const data = await db.Plan.findAll({
+      const data = await db.Specialized.findAll({
         limit: limit,
         offset: start,
       });
@@ -40,7 +40,7 @@ let getAll = (req, res) => {
 let getOne = (req, res, id) => {
   return new Promise(async (resolve, reject) => {
     try {
-      const data = await db.Plan.findOne({
+      const data = await db.Specialized.findOne({
         where: {
           id: id,
         },
@@ -76,20 +76,14 @@ let getOne = (req, res, id) => {
 let Creat = (req, res, dataAdd) => {
   return new Promise(async (resolve, reject) => {
     try {
-      const PostData = await db.Plan.create({
+      const PostData = await db.Specialized.create({
         name: dataAdd.name,
-        cate_ID: dataAdd.cate_ID,
-        specialized_ID: dataAdd.specialized_ID,
-        group: dataAdd.group,
-        status: dataAdd.status,
-        description: dataAdd.description,
-        slug: dataAdd.slug,
+        qty_student: dataAdd.qty_student,
       });
 
       if (PostData) {
         res.status(201).json({
           error: 0,
-
           messges: "Add successfully!",
           success: true,
           data: PostData,
@@ -112,7 +106,7 @@ let Creat = (req, res, dataAdd) => {
 let Remove = (req, res, id) => {
   return new Promise(async (resolve, reject) => {
     try {
-      const DeleteData = await db.Plan.destroy({
+      const DeleteData = await db.Specialized.destroy({
         where: {
           id: id,
         },
@@ -149,15 +143,10 @@ let Update = (req, res, id, data) => {
     try {
       let updateData = {
         name: data.name,
-        cate_ID: data.cate_ID,
-        specialized_ID: data.specialized_ID,
-        group: data.group,
-        status: data.status,
-        description: data.description,
-        slug: data.slug,
+        qty_student: data.qty_student,
       };
 
-      const fileone = await db.Plan.findOne({
+      const fileone = await db.Specialized.findOne({
         where: {
           id: id,
         },
@@ -170,7 +159,7 @@ let Update = (req, res, id, data) => {
           data: [],
         });
       } else {
-        const Update = await db.Plan.update(updateData, {
+        const Update = await db.Specialized.update(updateData, {
           where: {
             id: id,
           },
@@ -198,10 +187,13 @@ let Update = (req, res, id, data) => {
   });
 };
 
+
+
+
 module.exports = {
   getAll: getAll,
   getOne: getOne,
-  Creat: Creat,
   Remove: Remove,
+  Creat: Creat,
   Update: Update
 };

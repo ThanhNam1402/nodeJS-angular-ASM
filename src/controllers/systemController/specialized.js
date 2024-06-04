@@ -1,40 +1,41 @@
 import db from "./../../models/index";
 
-import planService from "./../../services/systemService/planService";
+import SpecializedService from "./../../services/systemService/specializedService";
 
 let getAll = async (req, res) => {
-  const data = await planService.getAll(req, res);
+  const data = await SpecializedService.getAll(req, res);
   return data;
 };
 
 let getOne = async (req, res) => {
   const id = req.params.id;
-  const data = await planService.getOne(req, res, id);
+  const data = await SpecializedService.getOne(req, res, id);
   return data;
 };
+
 let Creat = async (req, res)=> {
   const dataAdd = req.body;
-  const data = await planService.Creat(req, res, dataAdd);
+  const data = await SpecializedService.Creat(req, res, dataAdd);
   return data;
 }
 
 let Delete = async (req, res) => {
   const id = req.params.id;
-  const data = await planService.Remove(req, res, id);
+  const data = await SpecializedService.Remove(req, res, id);
   return data;
 };
 
 let Update = async (req, res) => {
   const id = req.params.id;
   const data = req.body;
-  const update = await planService.Update(req, res, id, data);
+  const update = await SpecializedService.Update(req, res, id, data);
   return update;
 }
 
 module.exports = {
   getAll: getAll,
   GetOne: getOne,
-  Creat: Creat,
   Delete: Delete,
+  Creat: Creat,
   Update: Update
 };

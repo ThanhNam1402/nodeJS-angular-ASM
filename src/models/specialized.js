@@ -10,6 +10,7 @@ module.exports = (sequelize, DataTypes) => {
   };
   Specialized.init({
     name: DataTypes.STRING,
+    qty_student: DataTypes.INTEGER
   }, {
     sequelize,
     modelName: 'Specialized',
