@@ -1,5 +1,9 @@
 import db from "./../../models/index";
 
+
+const apiurl = 'http://localhost:8181/api/plans'
+
+
 let getAll = (req, res) => {
   return new Promise(async (resolve, reject) => {
     try {
@@ -198,10 +202,103 @@ let Update = (req, res, id, data) => {
   });
 };
 
+// =================================================================
+
+let handleGetAllFiles = async (filter) => {
+  try {
+    console.log("filter", filter);
+
+    let { count, rows } = await db.PlanFile.findAndCountAll({
+      where: {
+        type: filter.type,
+      },
+      limit: Number(filter.limit),
+      offset: (Number(filter.page) - 1) * Number(filter.limit),
+      order: [['id', 'DESC']],
+      raw: true,
+    });
+
+
+    let pagination = {
+      last_page: Math.ceil(count / filter.limit),
+      page: Number(filter.page),
+      apiUrl: apiurl
+    }
+    let res = {
+      data: rows,
+      pagination: pagination
+    }
+
+    return res
+
+
+  } catch (error) {
+    throw error;
+  }
+}
+
+let handleAddPlanFiles = async (listFile) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+
+      listFile.forEach(async (item, index) => {
+        let typeFile = 0
+        if (item.mimetype == "image/png" || item.mimetype == "image/jpg" || item.mimetype == "image/jpeg") {
+          typeFile = 1
+        }
+        await db.PlanFile.create({
+          name: item.filename,
+          type: typeFile,
+        })
+      })
+
+      resolve({
+        success: true,
+        message: 'Thêm Thành Công'
+      });
+    } catch (error) {
+      reject(error);
+    }
+  })
+
+
+}
+
+let handleDelFile = async (id) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      let file = await db.PlanFile.findOne({
+        where: { id: id },
+        raw: false
+      })
+
+      if (!file) {
+        resolve({
+          success: false,
+          message: "Erro !! Không tìm thấy files"
+        })
+      } else {
+        await file.destroy();
+        resolve({
+          success: true,
+          message: "Thao Tác Thành Công !" + file.name
+        })
+      }
+    } catch (error) {
+      reject(error)
+    }
+
+  })
+}
+
 module.exports = {
   getAll: getAll,
   getOne: getOne,
   Creat: Creat,
   Remove: Remove,
-  Update: Update
+  Update: Update,
+
+  handleGetAllFiles,
+  handleAddPlanFiles,
+  handleDelFile
 };
