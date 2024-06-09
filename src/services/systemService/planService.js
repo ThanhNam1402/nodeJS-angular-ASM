@@ -1,40 +1,57 @@
 import db from "./../../models/index";
 
-let getAll = (req, res) => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      const limit = parseInt(req.query.limit) || 10;
-      const start = parseInt(req.query.start) || 0;
+let getAll = async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 10;
+    const page = parseInt(req.query.page) || 1;
+    const start = (page - 1) * limit;
 
-      const data = await db.Plan.findAll({
+    const data = await db.Plan.findAndCountAll({
+      limit: limit,
+      offset: start,
+    });
+
+    if (data.count > 0) {
+      const lastPages = Math.ceil(data.count / limit);
+      const end = start + data.rows.length;
+
+
+      const pagination = {
+        lastPages: lastPages,
+        currentPage: page
+      };
+
+      res.status(200).json({
+        messges: "Get All successfully!",
+        success: true,
+        data: data.rows,
+        start: start,
+        end: end,
         limit: limit,
-        offset: start,
+        pagination: pagination,
       });
-      if (data) {
-        const end = start + data.length;
-        res.status(200).json({
-          messges: "Get All successfully!",
-          success: true,
-          data: data,
-          start: start,
-          end: end,
-          limit: limit,
-        });
-      } else {
-        res.status(404).json({
-          error: 1,
-          messges: "Get All Fell!",
-          success: false,
-          data: [],
-          start: "",
-          limit: "",
-        });
-      }
-      resolve("");
-    } catch (err) {
-      reject(err);
+    } else {
+      res.status(404).json({
+        error: 1,
+        messges: "Get All Failed!",
+        success: false,
+        data: [],
+        start: "",
+        limit: "",
+        pagination: null,
+      });
     }
-  });
+  } catch (err) {
+    res.status(500).json({
+      error: 1,
+      messges: "Server Error!",
+      success: false,
+      data: [],
+      start: "",
+      limit: "",
+      pagination: null,
+    });
+  }
 };
 
 let getOne = (req, res, id) => {
