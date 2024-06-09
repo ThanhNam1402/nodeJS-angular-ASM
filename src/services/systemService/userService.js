@@ -3,9 +3,6 @@ import db from '../../models/index';
 const bcrypt = require('bcryptjs');
 const salt = bcrypt.genSaltSync(10);
 
-const apiurl = 'http://localhost:8181/api/users'
-const limit = 10
-
 let getAllUser = async (reqData) => {
     try {
         let res = {}
@@ -13,17 +10,16 @@ let getAllUser = async (reqData) => {
             attributes: {
                 exclude: ['password']
             },
-            limit: limit,
-            offset: (Number(reqData.page) - 1) * limit,
+            limit: Number(reqData.limit),
+            offset: (Number(reqData.page) - 1) * Number(reqData.limit),
             order: [['id', 'DESC']],
             raw: true,
         });
 
-
         let pagination = {
-            last_page: Math.ceil(count / limit),
+            total: count,
+            limit: Number(reqData.limit),
             page: Number(reqData.page),
-            apiUrl: apiurl
         }
 
         res.pagination = pagination
@@ -36,37 +32,6 @@ let getAllUser = async (reqData) => {
     } catch (error) {
         throw error
     }
-}
-
-let createUser = (data) => {
-    return new Promise(async (resolve, reject) => {
-        try {
-            let check = await checkUserEmail(data.email);
-            if (check === true) {
-                resolve({
-                    message: 'Đã có user',
-                    success: false
-                });
-            }
-            else {
-                let hashPassword = await hashPass(data.password);
-                await db.User.create({
-                    email: data.email,
-                    password: hashPassword,
-                    first_name: data.first_name,
-                    last_name: data.last_name,
-                    gender: data.gender,
-                    role_ID: data.role_ID,
-                })
-                resolve({
-                    success: true,
-                    message: 'Tạo Người Dùng Thành Công'
-                });
-            }
-        } catch (error) {
-            reject(error);
-        }
-    })
 }
 
 let delUser = (id) => {
@@ -101,9 +66,6 @@ let delUser = (id) => {
 let editUser = (data) => {
     return new Promise(async (resolve, reject) => {
         try {
-
-
-            console.log(data);
             if (!data.id) {
                 resolve({
                     success: 1,
@@ -115,9 +77,11 @@ let editUser = (data) => {
                 raw: false
             })
             if (user) {
-                user.first_name = data.first_name;
-                user.last_name = data.last_name;
-                user.email = data.email;
+                user.name = data.name;
+                user.messageail = data.messageail;
+                user.roleId = data.roleID;
+                user.gender = data.gender;
+                user.phone = data.phone;
 
                 await user.save();
                 resolve({
@@ -134,6 +98,7 @@ let editUser = (data) => {
         } catch (error) {
             reject(error)
         }
+
     })
 }
 
@@ -168,42 +133,9 @@ let getOneUser = async (id) => {
 
 }
 
-let checkUserEmail = (UserEmail) => {
-    return new Promise(async (resolve, reject) => {
-        try {
-            let user = await db.User.findOne({
-                where: { email: UserEmail }
-            });
-
-            if (user) {
-                resolve(true);
-            } else {
-                resolve(false)
-            }
-
-        } catch (error) {
-            reject(error);
-        }
-
-    });
-}
-
-// hass password
-let hashPass = (pass) => {
-    return new Promise(async (resolve, reject) => {
-        try {
-            let hash = bcrypt.hashSync(pass, salt);
-            resolve(hash);
-        } catch (error) {
-            reject(error);
-        }
-    })
-}
-
 module.exports = {
     getAllUser,
     delUser,
     editUser,
     getOneUser,
-    createUser
 }
