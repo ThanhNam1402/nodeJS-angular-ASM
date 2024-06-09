@@ -264,6 +264,33 @@ let handleAddPlanFiles = async (listFile) => {
 
 }
 
+let handleDelFile = async (id) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      let file = await db.PlanFile.findOne({
+        where: { id: id },
+        raw: false
+      })
+
+      if (!file) {
+        resolve({
+          success: false,
+          message: "Erro !! Không tìm thấy files"
+        })
+      } else {
+        await file.destroy();
+        resolve({
+          success: true,
+          message: "Thao Tác Thành Công !" + file.name
+        })
+      }
+    } catch (error) {
+      reject(error)
+    }
+
+  })
+}
+
 module.exports = {
   getAll: getAll,
   getOne: getOne,
@@ -272,5 +299,6 @@ module.exports = {
   Update: Update,
 
   handleGetAllFiles,
-  handleAddPlanFiles
+  handleAddPlanFiles,
+  handleDelFile
 };

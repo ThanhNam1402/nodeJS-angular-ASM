@@ -80,6 +80,31 @@ let addPlanFile = async (req, res) => {
   }
 }
 
+let delPlanFile = async (req, res) => {
+  try {
+
+    console.log(req.params);
+
+    let { id } = req.params
+    console.log(id);
+
+    let data = await planService.handleDelFile(id)
+
+    if (data && data.success) {
+      return res.status(200).json({
+        ...data
+      })
+    } else {
+      return res.status(404).json({
+        ...data
+      })
+    }
+  } catch (error) {
+    return res.status(500).json({
+      error: error.message
+    })
+  }
+}
 // 
 
 module.exports = {
@@ -91,5 +116,6 @@ module.exports = {
 
   getAllFiles,
   downLoadFile,
-  addPlanFile
+  addPlanFile,
+  delPlanFile
 };
