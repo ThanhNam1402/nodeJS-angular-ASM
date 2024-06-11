@@ -7,7 +7,7 @@ let router = express.Router();
 
 router.get('/plans', planController.getAll);
 router.get('/plans/:id', planController.GetOne);
-router.post('/plans/add', planController.Creat);
-router.delete('/plans/delete/:id', planController.Delete);
-router.put('/plans/update/:id', planController.Update);
+router.post('/plans', planController.Creat);
+router.delete('/plans/:id', planController.Delete);
+router.put('/plans/:id', planController.Update);
 export const PlanRouter = router

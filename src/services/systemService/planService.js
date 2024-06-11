@@ -1,5 +1,4 @@
 import db from "./../../models/index";
-
 let getAll = async (req, res) => {
   try {
     const limit = parseInt(req.query.limit) || 10;
@@ -9,13 +8,23 @@ let getAll = async (req, res) => {
     const data = await db.Plan.findAndCountAll({
       limit: limit,
       offset: start,
+      include: [{
+        model: db.Specialized,
+        attributes: ['name'] // Trường 'name' của bảng 'specialized'
+      },
+      {
+        model: db.User,
+        attributes: ['full_name'] // Trường 'full_name' của bảng 'user'
+      }
+    ],
+      raw : true,
+      nest : true
     });
 
     if (data.count > 0) {
       const lastPages = Math.ceil(data.count / limit);
       const end = start + data.rows.length;
-
-
+      
       const pagination = {
         lastPages: lastPages,
         currentPage: page
@@ -24,7 +33,7 @@ let getAll = async (req, res) => {
       res.status(200).json({
         messges: "Get All successfully!",
         success: true,
-        data: data.rows,
+        data: data.rows, // Trả về trường 'name' của bảng 'specialized'
         start: start,
         end: end,
         limit: limit,
@@ -44,7 +53,7 @@ let getAll = async (req, res) => {
   } catch (err) {
     res.status(500).json({
       error: 1,
-      messges: "Server Error!",
+      messges: err.message, // Trả về thông báo lỗi cụ thể từ đối tượng lỗi
       success: false,
       data: [],
       start: "",
@@ -53,7 +62,6 @@ let getAll = async (req, res) => {
     });
   }
 };
-
 let getOne = (req, res, id) => {
   return new Promise(async (resolve, reject) => {
     try {
@@ -61,6 +69,16 @@ let getOne = (req, res, id) => {
         where: {
           id: id,
         },
+        include: [{
+          model: db.Specialized,
+          attributes: ['name'] // Trường 'name' của bảng 'specialized'
+        }, 
+        {
+          model: db.User,
+          attributes: ['full_name'] // Trường 'full_name' của bảng 'user'
+        }],
+        raw : true,
+        nest : true
       });
       if (data) {
         res.status(200).json({
