@@ -1,4 +1,5 @@
 import db from "./../../models/index";
+
 let getAll = async (req, res) => {
   try {
     const limit = parseInt(req.query.limit) || 10;
@@ -108,13 +109,13 @@ let getOne = (req, res, id) => {
   });
 };
 
-let Creat = (req, res, dataAdd) => {
+let Create = (req, res, dataAdd) => {
   return new Promise(async (resolve, reject) => {
     try {
       const PostData = await db.Plan.create({
         name: dataAdd.name,
-        cate_ID: dataAdd.cate_ID,
-        specialized_ID: dataAdd.specialized_ID,
+        userId: dataAdd.userId,
+        specializedId: dataAdd.specializedId,
         group: dataAdd.group,
         status: dataAdd.status,
         description: dataAdd.description,
@@ -124,7 +125,6 @@ let Creat = (req, res, dataAdd) => {
       if (PostData) {
         res.status(201).json({
           error: 0,
-
           messges: "Add successfully!",
           success: true,
           data: PostData,
@@ -184,8 +184,8 @@ let Update = (req, res, id, data) => {
     try {
       let updateData = {
         name: data.name,
-        cate_ID: data.cate_ID,
-        specialized_ID: data.specialized_ID,
+        userId: data.userId,
+        specializedId: data.specializedId,
         group: data.group,
         status: data.status,
         description: data.description,
@@ -233,10 +233,103 @@ let Update = (req, res, id, data) => {
   });
 };
 
+// =================================================================
+
+let handleGetAllFiles = async (filter) => {
+  try {
+    console.log("filter", filter);
+
+    let { count, rows } = await db.PlanFile.findAndCountAll({
+      where: {
+        type: filter.type,
+      },
+      limit: Number(filter.limit),
+      offset: (Number(filter.page) - 1) * Number(filter.limit),
+      order: [['id', 'DESC']],
+      raw: true,
+    });
+
+
+    let pagination = {
+      last_page: Math.ceil(count / filter.limit),
+      page: Number(filter.page),
+      apiUrl: apiurl
+    }
+    let res = {
+      data: rows,
+      pagination: pagination
+    }
+
+    return res
+
+
+  } catch (error) {
+    throw error;
+  }
+}
+
+let handleAddPlanFiles = async (listFile) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+
+      listFile.forEach(async (item, index) => {
+        let typeFile = 0
+        if (item.mimetype == "image/png" || item.mimetype == "image/jpg" || item.mimetype == "image/jpeg") {
+          typeFile = 1
+        }
+        await db.PlanFile.create({
+          name: item.filename,
+          type: typeFile,
+        })
+      })
+
+      resolve({
+        success: true,
+        message: 'Thêm Thành Công'
+      });
+    } catch (error) {
+      reject(error);
+    }
+  })
+
+
+}
+
+let handleDelFile = async (id) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      let file = await db.PlanFile.findOne({
+        where: { id: id },
+        raw: false
+      })
+
+      if (!file) {
+        resolve({
+          success: false,
+          message: "Erro !! Không tìm thấy files"
+        })
+      } else {
+        await file.destroy();
+        resolve({
+          success: true,
+          message: "Thao Tác Thành Công !" + file.name
+        })
+      }
+    } catch (error) {
+      reject(error)
+    }
+
+  })
+}
+
 module.exports = {
   getAll: getAll,
   getOne: getOne,
-  Creat: Creat,
+  Create,
   Remove: Remove,
-  Update: Update
+  Update: Update,
+
+  handleGetAllFiles,
+  handleAddPlanFiles,
+  handleDelFile
 };
