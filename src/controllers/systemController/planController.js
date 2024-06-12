@@ -72,6 +72,8 @@ let addPlanFile = async (req, res) => {
 
   try {
 
+
+    console.log(req.files);
     let data = await planService.handleAddPlanFiles(req.files)
     res.status(200).json({ ...data })
 

@@ -11,6 +11,7 @@ module.exports = (sequelize, DataTypes) => {
   PlanFile.init({
     name: DataTypes.STRING,
     type: DataTypes.INTEGER,
+    plan_ID: DataTypes.INTEGER,
   }, {
     sequelize,
     modelName: 'PlanFile',

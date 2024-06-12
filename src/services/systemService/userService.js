@@ -117,9 +117,10 @@ let editUser = (data) => {
             if (user) {
                 user.first_name = data.first_name;
                 user.last_name = data.last_name;
-                user.email = data.email;
+                user.email = data.email
+                user.role_ID = data.role_ID,
 
-                await user.save();
+                    await user.save();
                 resolve({
                     success: true,
                     message: "Cập Nhật Thành Công !"

@@ -3,6 +3,7 @@ import bodyParser from "body-parser";
 import connectDB from "./config/connectDB"
 import cors from "cors";
 import cookieParser from "cookie-parser"
+import path from "path"
 import 'dotenv/config'
 import { corsOptions } from "./config/cors";
 import { routerSystem } from "./router/index";
@@ -23,7 +24,7 @@ connectDB();
 
 // app.use(express.static('./src/upload_files'))
 
-// app.use(express.static(path.join(__dirname, 'upload_files')));
+app.use(express.static(path.join(__dirname, 'upload_files')));
 
 app.use("/upload_files", express.static('upload_files'))
 

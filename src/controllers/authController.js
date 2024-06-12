@@ -8,7 +8,7 @@ let handleLogin = async (req, res) => {
         let { email, password } = req.body;
 
         if (!email || !password) {
-            return res.status(404).json({
+            return res.status(422).json({
                 success: false,
                 message: 'Thiếu trường email hoặc password'
             })
@@ -25,7 +25,7 @@ let handleLogin = async (req, res) => {
         // set cookie token, bỏ cũng đc 
         if (data && data.success === true) {
 
-            res.cookie('accessToken', userData.data.token, { httpOnly: true })
+            res.cookie('accessToken', data.data.token, { httpOnly: true })
 
             return res.status(200).json({
                 ...data
@@ -38,23 +38,6 @@ let handleLogin = async (req, res) => {
         })
     }
 }
-
-// logout
-// let handleLogout = async (req, res) => {
-//     try {
-//         res.clearCookie('accessToken');
-//         return res.status(200).json({
-//             EC: 0,
-//             EM: null
-//         });
-//     } catch (error) {
-//         return res.status(401).json({
-//             EM: error.message,
-//             EC: 1
-//         })
-
-//     }
-// }
 
 // refresh token 
 const handleRefreshToken = async (req, res) => {

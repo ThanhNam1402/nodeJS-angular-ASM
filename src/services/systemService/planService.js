@@ -2,7 +2,7 @@ import db from "./../../models/index";
 
 
 const apiurl = 'http://localhost:8181/api/plans'
-
+const limit = 6
 
 let getAll = async (req, res) => {
   try {
@@ -228,19 +228,26 @@ let handleGetAllFiles = async (filter) => {
     let { count, rows } = await db.PlanFile.findAndCountAll({
       where: {
         type: filter.type,
+        plan_ID: filter.plan_ID
       },
-      limit: Number(filter.limit),
-      offset: (Number(filter.page) - 1) * Number(filter.limit),
+      attributes: {
+        exclude: ['createdAt', 'updatedAt']
+      },
+      limit: limit,
+      offset: (Number(filter.page) - 1) * limit,
       order: [['id', 'DESC']],
       raw: true,
     });
 
 
     let pagination = {
-      last_page: Math.ceil(count / filter.limit),
+      last_page: Math.ceil(count / limit),
       page: Number(filter.page),
       apiUrl: apiurl
     }
+
+
+    console.log(rows);
     let res = {
       data: rows,
       pagination: pagination
