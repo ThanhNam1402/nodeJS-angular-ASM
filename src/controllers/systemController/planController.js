@@ -11,10 +11,12 @@ let getOne = async (req, res) => {
   const data = await planService.getOne(req, res, id);
   return data;
 };
-let Create = async (req, res) => {
-  const dataAdd = req.body;
-  const data = await planService.Create(req, res, dataAdd);
-  return data;
+
+
+let Create = async (req, res)=> {
+    const dataAdd = req.body;
+    const data = await planService.Create(req, res, dataAdd);
+    return data;
 }
 
 let Delete = async (req, res) => {
@@ -112,7 +114,7 @@ let delPlanFile = async (req, res) => {
 module.exports = {
   getAll: getAll,
   GetOne: getOne,
-  Create: Create,
+  Create,
   Delete: Delete,
   Update: Update,
 

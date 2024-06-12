@@ -1,9 +1,7 @@
 import db from "./../../models/index";
 
-
 const apiurl = 'http://localhost:8181/api/plans'
 const limit = 6
-
 let getAll = async (req, res) => {
   try {
     const limit = parseInt(req.query.limit) || 10;
@@ -13,12 +11,22 @@ let getAll = async (req, res) => {
     const data = await db.Plan.findAndCountAll({
       limit: limit,
       offset: start,
+      include: [{
+        model: db.Specialized,
+        attributes: ['name'] // Trường 'name' của bảng 'specialized'
+      },
+      {
+        model: db.User,
+        attributes: ['full_name'] // Trường 'full_name' của bảng 'user'
+      }
+      ],
+      raw: true,
+      nest: true
     });
 
     if (data.count > 0) {
       const lastPages = Math.ceil(data.count / limit);
       const end = start + data.rows.length;
-
 
       const pagination = {
         lastPages: lastPages,
@@ -28,7 +36,7 @@ let getAll = async (req, res) => {
       res.status(200).json({
         messges: "Get All successfully!",
         success: true,
-        data: data.rows,
+        data: data.rows, // Trả về trường 'name' của bảng 'specialized'
         start: start,
         end: end,
         limit: limit,
@@ -48,7 +56,7 @@ let getAll = async (req, res) => {
   } catch (err) {
     res.status(500).json({
       error: 1,
-      messges: "Server Error!",
+      messges: err.message, // Trả về thông báo lỗi cụ thể từ đối tượng lỗi
       success: false,
       data: [],
       start: "",
@@ -57,7 +65,6 @@ let getAll = async (req, res) => {
     });
   }
 };
-
 let getOne = (req, res, id) => {
   return new Promise(async (resolve, reject) => {
     try {
@@ -65,6 +72,16 @@ let getOne = (req, res, id) => {
         where: {
           id: id,
         },
+        include: [{
+          model: db.Specialized,
+          attributes: ['name'] // Trường 'name' của bảng 'specialized'
+        },
+        {
+          model: db.User,
+          attributes: ['full_name'] // Trường 'full_name' của bảng 'user'
+        }],
+        raw: true,
+        nest: true
       });
       if (data) {
         res.status(200).json({
@@ -99,8 +116,8 @@ let Create = (req, res, dataAdd) => {
     try {
       const PostData = await db.Plan.create({
         name: dataAdd.name,
-        cate_ID: dataAdd.cate_ID,
-        specialized_ID: dataAdd.specialized_ID,
+        userId: dataAdd.userId,
+        specializedId: dataAdd.specializedId,
         group: dataAdd.group,
         status: dataAdd.status,
         description: dataAdd.description,
@@ -110,7 +127,6 @@ let Create = (req, res, dataAdd) => {
       if (PostData) {
         res.status(201).json({
           error: 0,
-
           messges: "Add successfully!",
           success: true,
           data: PostData,
@@ -170,8 +186,8 @@ let Update = (req, res, id, data) => {
     try {
       let updateData = {
         name: data.name,
-        cate_ID: data.cate_ID,
-        specialized_ID: data.specialized_ID,
+        userId: data.userId,
+        specializedId: data.specializedId,
         group: data.group,
         status: data.status,
         description: data.description,
@@ -318,7 +334,7 @@ let handleDelFile = async (id) => {
 module.exports = {
   getAll: getAll,
   getOne: getOne,
-  Create: Create,
+  Create,
   Remove: Remove,
   Update: Update,
 

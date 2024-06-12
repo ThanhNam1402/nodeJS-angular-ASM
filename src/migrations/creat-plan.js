@@ -11,10 +11,10 @@ module.exports = {
       name: {
         type: Sequelize.STRING
       },
-      cate_ID: {
+      user_Id: {
         type: Sequelize.INTEGER
       },
-      specialized_ID: {
+      specializedId: {
         type: Sequelize.INTEGER
       },
       group: {

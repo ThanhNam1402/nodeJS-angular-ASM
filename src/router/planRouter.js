@@ -14,9 +14,7 @@ router.delete('/plan/file/:id', planController.delPlanFile);
 
 router.get('/plans', planController.getAll);
 router.get('/plans/:id', planController.GetOne);
-router.post('/plans/add', planController.Create);
-router.delete('/plans/delete/:id', planController.Delete);
-router.put('/plans/update/:id', planController.Update);
-
-
+router.post('/plans' , planController.Create);
+router.delete('/plans/:id', planController.Delete);
+router.put('/plans/:id', planController.Update);
 export const PlanRouter = router
