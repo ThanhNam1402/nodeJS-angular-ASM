@@ -11,6 +11,8 @@ let getOne = async (req, res) => {
   const data = await planService.getOne(req, res, id);
   return data;
 };
+
+
 let Create = async (req, res) => {
   const dataAdd = req.body;
   const data = await planService.Create(req, res, dataAdd);
@@ -58,7 +60,7 @@ let downLoadFile = async (req, res) => {
   try {
 
     let { name } = req.params
-    res.download('src/upload_files/' + name);
+    res.download('src/upload_files/' + name, name);
 
   } catch (error) {
     res.status(500).json({
@@ -70,15 +72,18 @@ let downLoadFile = async (req, res) => {
 
 let addPlanFile = async (req, res) => {
 
+  let reqData = {
+    reqBody: req.body,
+    reqFiles: req.files
+  }
+
   try {
-
-
-    console.log(req.files);
-    let data = await planService.handleAddPlanFiles(req.files)
+    let data = await planService.handleAddPlanFiles(reqData)
     res.status(200).json({ ...data })
 
   } catch (error) {
-    res.status(500).json({ error })
+    res.status(404).json({ error: 'not file' })
+
   }
 }
 
@@ -112,7 +117,7 @@ let delPlanFile = async (req, res) => {
 module.exports = {
   getAll: getAll,
   GetOne: getOne,
-  Create: Create,
+  Create,
   Delete: Delete,
   Update: Update,
 
