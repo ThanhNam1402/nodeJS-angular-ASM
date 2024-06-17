@@ -1,9 +1,9 @@
+import { create } from "lodash";
 import db from "./../../models/index";
 
 const apiurl = 'http://localhost:8181/api/plans'
 const limit = 6
 const { Op } = require('sequelize');
-
 let getAll = async (req, res) => {
   try {
     const limit = parseInt(req.query.limit) || 10;
@@ -251,16 +251,17 @@ let handleGetAllFiles = async (filter) => {
       attributes: {
         exclude: ['createdAt', 'updatedAt']
       },
-      limit: limit,
-      offset: (Number(filter.page) - 1) * limit,
+      limit: Number(filter.limit),
+      offset: (Number(filter.page) - 1) * Number(filter.limit),
       order: [['id', 'DESC']],
       raw: true,
     });
 
 
     let pagination = {
-      last_page: Math.ceil(count / limit),
+      last_page: Math.ceil(count / Number(filter.limit)),
       page: Number(filter.page),
+      total_items: count,
       apiUrl: apiurl
     }
 
@@ -279,24 +280,54 @@ let handleGetAllFiles = async (filter) => {
   }
 }
 
-let handleAddPlanFiles = async (listFile) => {
+let handleInsertPlanFiles = async (item, typeFile, plan_ID) => {
+  await db.PlanFile.create({
+    name: item.filename,
+    type: typeFile,
+    plan_ID: plan_ID,
+  })
+}
+
+let handleAddPlanFiles = async (reqData) => {
   return new Promise(async (resolve, reject) => {
     try {
+
+      let listFile = reqData.reqFiles
+      let fileInfo = reqData.reqBody
+
+      console.log(listFile.length);
+
+      const promises = [];
 
       listFile.forEach(async (item, index) => {
         let typeFile = 0
         if (item.mimetype == "image/png" || item.mimetype == "image/jpg" || item.mimetype == "image/jpeg") {
           typeFile = 1
         }
-        await db.PlanFile.create({
-          name: item.filename,
-          type: typeFile,
-        })
+        const promise = handleInsertPlanFiles(item, typeFile, fileInfo.plan_ID)
+        promises.push(promise);
       })
+
+      await Promise.all(promises);
+
+
+      let lastesData = await db.PlanFile.findAll({
+        where: {
+          type: fileInfo.fileType
+        },
+        attributes: {
+          exclude: ['createdAt', 'updatedAt']
+        },
+        limit: listFile.length,
+        order: [['id', 'DESC']],
+        raw: true,
+      });
+
 
       resolve({
         success: true,
-        message: 'Thêm Thành Công'
+        message: 'Thêm Thành Công',
+        data: lastesData
       });
     } catch (error) {
       reject(error);
@@ -314,6 +345,8 @@ let handleDelFile = async (id) => {
         raw: false
       })
 
+
+
       if (!file) {
         resolve({
           success: false,
@@ -321,9 +354,21 @@ let handleDelFile = async (id) => {
         })
       } else {
         await file.destroy();
+
+        const totalItem = await db.PlanFile.count({
+          where: {
+            type: file.type,
+            plan_ID: file.plan_ID,
+          }
+        });
+
         resolve({
           success: true,
-          message: "Thao Tác Thành Công !" + file.name
+          message: "Thao Tác Thành Công !" + file.name,
+          data: {
+            delete_file: file,
+            total_items: totalItem
+          }
         })
       }
     } catch (error) {
