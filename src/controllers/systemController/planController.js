@@ -7,8 +7,8 @@ let getAll = async (req, res) => {
 };
 
 let getOne = async (req, res) => {
-  const id = req.params.id;
-  const data = await planService.getOne(req, res, id);
+  const identifier = req.params.id;
+  const data = await planService.getOne(req, res, identifier);
   return data;
 };
 

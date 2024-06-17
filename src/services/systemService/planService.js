@@ -2,6 +2,8 @@ import db from "./../../models/index";
 
 const apiurl = 'http://localhost:8181/api/plans'
 const limit = 6
+const { Op } = require('sequelize');
+
 let getAll = async (req, res) => {
   try {
     const limit = parseInt(req.query.limit) || 10;
