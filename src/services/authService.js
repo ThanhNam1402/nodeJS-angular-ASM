@@ -22,7 +22,6 @@ let handleLogin = async (email, password) => {
             if (user) {
                 let check = bcrypt.compareSync(password, user.password);
 
-
                 console.log(user);
                 if (check) {
                     delete user.password;
@@ -30,7 +29,7 @@ let handleLogin = async (email, password) => {
                     userData.success = true;
                     userData.message = 'success'
                     userData.data = {
-                        email: user.email,
+                        info: user,
                         token: createTokenJWT(user),
                     }
 
@@ -104,3 +103,4 @@ module.exports = {
     handleLogin,
     getAccount
 }
+

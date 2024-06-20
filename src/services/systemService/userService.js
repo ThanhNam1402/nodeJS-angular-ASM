@@ -1,4 +1,5 @@
 import db from '../../models/index';
+import Sequelize from 'sequelize';
 
 const bcrypt = require('bcryptjs');
 const salt = bcrypt.genSaltSync(10);
@@ -6,10 +7,25 @@ const salt = bcrypt.genSaltSync(10);
 const apiurl = 'http://localhost:8181/api/users'
 const limit = 10
 
+const Op = Sequelize.Op;
+
 let getAllUser = async (reqData) => {
     try {
         let res = {}
+
+        let cond = {}
+        if (reqData.keyword && reqData.keyword !== '') {
+            cond = {
+                name: {
+                    [Op.like]: `%${reqData.keyword}%`
+                }
+            }
+        }
+
         let { count, rows } = await db.User.findAndCountAll({
+            where:
+                cond
+            ,
             attributes: {
                 exclude: ['password']
             },
@@ -19,6 +35,12 @@ let getAllUser = async (reqData) => {
             raw: true,
         });
 
+        if (!rows) {
+            res.data = []
+        } else {
+            res.data = rows;
+
+        }
 
         let pagination = {
             last_page: Math.ceil(count / limit),
@@ -27,7 +49,6 @@ let getAllUser = async (reqData) => {
         }
 
         res.pagination = pagination
-        res.data = rows;
         res.success = true;
         res.message = 'success';
 
@@ -44,7 +65,7 @@ let createUser = (data) => {
             let check = await checkUserEmail(data.email);
             if (check === true) {
                 resolve({
-                    message: 'Đã có user',
+                    message: 'Email đã tồn tại',
                     success: false
                 });
             }
@@ -53,8 +74,7 @@ let createUser = (data) => {
                 await db.User.create({
                     email: data.email,
                     password: hashPassword,
-                    first_name: data.first_name,
-                    last_name: data.last_name,
+                    name: data.name,
                     gender: data.gender,
                     role_ID: data.role_ID,
                 })
@@ -115,9 +135,7 @@ let editUser = (data) => {
                 raw: false
             })
             if (user) {
-                user.first_name = data.first_name;
-                user.last_name = data.last_name;
-                user.email = data.email
+                user.name = data.name;
                 user.role_ID = data.role_ID,
 
                     await user.save();

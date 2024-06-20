@@ -67,12 +67,15 @@ let getAll = async (req, res) => {
     });
   }
 };
-let getOne = (req, res, id) => {
+let getOne = (req, res, identifier) => {
   return new Promise(async (resolve, reject) => {
     try {
       const data = await db.Plan.findOne({
         where: {
-          id: id,
+          [Op.or]: [
+            { id: identifier }, // Tìm kiếm theo id
+            { slug: identifier } // Tìm kiếm theo slug
+          ]
         },
         include: [{
           model: db.Specialized,
