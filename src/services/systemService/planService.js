@@ -1,9 +1,5 @@
-import { create } from "lodash";
 import db from "./../../models/index";
-
-const apiurl = 'http://localhost:8181/api/plans'
-const limit = 6
-const { Op } = require('sequelize');
+const { Op } = require("sequelize");
 let getAll = async (req, res) => {
   try {
     const limit = parseInt(req.query.limit) || 10;
@@ -13,17 +9,18 @@ let getAll = async (req, res) => {
     const data = await db.Plan.findAndCountAll({
       limit: limit,
       offset: start,
-      include: [{
-        model: db.Specialized,
-        attributes: ['name'] // Trường 'name' của bảng 'specialized'
-      },
-      {
-        model: db.User,
-        attributes: ['full_name'] // Trường 'full_name' của bảng 'user'
-      }
+      include: [
+        {
+          model: db.Specialized,
+          attributes: ["name"], // Trường 'name' của bảng 'specialized'
+        },
+        {
+          model: db.User,
+          attributes: ["full_name"], // Trường 'full_name' của bảng 'user'
+        },
       ],
       raw: true,
-      nest: true
+      nest: true,
     });
 
     if (data.count > 0) {
@@ -32,7 +29,7 @@ let getAll = async (req, res) => {
 
       const pagination = {
         lastPages: lastPages,
-        currentPage: page
+        currentPage: page,
       };
 
       res.status(200).json({
@@ -74,19 +71,21 @@ let getOne = (req, res, identifier) => {
         where: {
           [Op.or]: [
             { id: identifier }, // Tìm kiếm theo id
-            { slug: identifier } // Tìm kiếm theo slug
-          ]
+            { slug: identifier }, // Tìm kiếm theo slug
+          ],
         },
-        include: [{
-          model: db.Specialized,
-          attributes: ['name'] // Trường 'name' của bảng 'specialized'
-        },
-        {
-          model: db.User,
-          attributes: ['full_name'] // Trường 'full_name' của bảng 'user'
-        }],
+        include: [
+          {
+            model: db.Specialized,
+            attributes: ["name"], // Trường 'name' của bảng 'specialized'
+          },
+          {
+            model: db.User,
+            attributes: ["full_name"], // Trường 'full_name' của bảng 'user'
+          },
+        ],
         raw: true,
-        nest: true
+        nest: true,
       });
       if (data) {
         res.status(200).json({
@@ -116,9 +115,23 @@ let getOne = (req, res, identifier) => {
   });
 };
 
+
 let Create = (req, res, dataAdd) => {
   return new Promise(async (resolve, reject) => {
     try {
+      const checkSlug = await db.Plan.findOne({ where: { slug: dataAdd.slug } });
+
+      if (checkSlug) {
+        res.status(400).json({
+          error: 1,
+          messges: "Slug must be unique and should not overlap!",
+          success: false,
+          data: [],
+        });
+        resolve("");
+        return;
+      }
+
       const PostData = await db.Plan.create({
         name: dataAdd.name,
         userId: dataAdd.userId,
@@ -139,7 +152,7 @@ let Create = (req, res, dataAdd) => {
       } else {
         res.status(404).json({
           error: 1,
-          messges: "Creat Fell!",
+          messges: "Create Failed!",
           success: false,
           data: [],
         });
@@ -249,137 +262,82 @@ let handleGetAllFiles = async (filter) => {
     let { count, rows } = await db.PlanFile.findAndCountAll({
       where: {
         type: filter.type,
-        plan_ID: filter.plan_ID
-      },
-      attributes: {
-        exclude: ['createdAt', 'updatedAt']
       },
       limit: Number(filter.limit),
       offset: (Number(filter.page) - 1) * Number(filter.limit),
-      order: [['id', 'DESC']],
+      order: [["id", "DESC"]],
       raw: true,
     });
 
-
     let pagination = {
-      last_page: Math.ceil(count / Number(filter.limit)),
+      last_page: Math.ceil(count / filter.limit),
       page: Number(filter.page),
-      total_items: count,
-      apiUrl: apiurl
-    }
-
-
-    console.log(rows);
+      apiUrl: apiurl,
+    };
     let res = {
       data: rows,
-      pagination: pagination
-    }
+      pagination: pagination,
+    };
 
-    return res
-
-
+    return res;
   } catch (error) {
     throw error;
   }
-}
+};
 
-let handleInsertPlanFiles = async (item, typeFile, plan_ID) => {
-  await db.PlanFile.create({
-    name: item.filename,
-    type: typeFile,
-    plan_ID: plan_ID,
-  })
-}
-
-let handleAddPlanFiles = async (reqData) => {
+let handleAddPlanFiles = async (listFile) => {
   return new Promise(async (resolve, reject) => {
     try {
-
-      let listFile = reqData.reqFiles
-      let fileInfo = reqData.reqBody
-
-      console.log(listFile.length);
-
-      const promises = [];
-
       listFile.forEach(async (item, index) => {
-        let typeFile = 0
-        if (item.mimetype == "image/png" || item.mimetype == "image/jpg" || item.mimetype == "image/jpeg") {
-          typeFile = 1
+        let typeFile = 0;
+        if (
+          item.mimetype == "image/png" ||
+          item.mimetype == "image/jpg" ||
+          item.mimetype == "image/jpeg"
+        ) {
+          typeFile = 1;
         }
-        const promise = handleInsertPlanFiles(item, typeFile, fileInfo.plan_ID)
-        promises.push(promise);
-      })
-
-      await Promise.all(promises);
-
-
-      let lastesData = await db.PlanFile.findAll({
-        where: {
-          type: fileInfo.fileType
-        },
-        attributes: {
-          exclude: ['createdAt', 'updatedAt']
-        },
-        limit: listFile.length,
-        order: [['id', 'DESC']],
-        raw: true,
+        await db.PlanFile.create({
+          name: item.filename,
+          type: typeFile,
+        });
       });
-
 
       resolve({
         success: true,
-        message: 'Thêm Thành Công',
-        data: lastesData
+        message: "Thêm Thành Công",
       });
     } catch (error) {
       reject(error);
     }
-  })
-
-
-}
+  });
+};
 
 let handleDelFile = async (id) => {
   return new Promise(async (resolve, reject) => {
     try {
       let file = await db.PlanFile.findOne({
         where: { id: id },
-        raw: false
-      })
-
-
+        raw: false,
+      });
 
       if (!file) {
         resolve({
           success: false,
-          message: "Erro !! Không tìm thấy files"
-        })
+          message: "Erro !! Không tìm thấy files",
+        });
       } else {
         await file.destroy();
-
-        const totalItem = await db.PlanFile.count({
-          where: {
-            type: file.type,
-            plan_ID: file.plan_ID,
-          }
-        });
-
         resolve({
           success: true,
           message: "Thao Tác Thành Công !" + file.name,
-          data: {
-            delete_file: file,
-            total_items: totalItem
-          }
-        })
+        });
       }
     } catch (error) {
-      reject(error)
+      reject(error);
     }
-
-  })
-}
+  });
+};
 
 module.exports = {
   getAll: getAll,
@@ -390,5 +348,5 @@ module.exports = {
 
   handleGetAllFiles,
   handleAddPlanFiles,
-  handleDelFile
+  handleDelFile,
 };
