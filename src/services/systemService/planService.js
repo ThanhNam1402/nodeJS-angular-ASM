@@ -2,11 +2,16 @@ import db from "./../../models/index";
 const { Op } = require("sequelize");
 let getAll = async (req, res) => {
   try {
-    const limit = parseInt(req.query.limit) || 10;
+    const limit = parseInt(req.query.limit) || 5;
     const page = parseInt(req.query.page) || 1;
     const start = (page - 1) * limit;
-
+    const keyword = req.query.keyword || "";
     const data = await db.Plan.findAndCountAll({
+      where: {
+        name: {
+          [db.Sequelize.Op.like]: `%${keyword}%`, // Tìm kiếm các bản ghi có tên chứa từ khóa
+        },
+      },
       limit: limit,
       offset: start,
       include: [
@@ -23,7 +28,7 @@ let getAll = async (req, res) => {
       nest: true,
     });
 
-    if (data.count > 0) {
+    if (data.count >= 0) {
       const lastPages = Math.ceil(data.count / limit);
       const end = start + data.rows.length;
 
