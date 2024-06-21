@@ -4,8 +4,8 @@ import Sequelize from 'sequelize';
 const bcrypt = require('bcryptjs');
 const salt = bcrypt.genSaltSync(10);
 
-const apiurl = 'http://localhost:8181/api/users'
-const limit = 10
+let apiurl = 'http://localhost:8181/api/users'
+const limit = 3
 
 const Op = Sequelize.Op;
 
@@ -75,6 +75,7 @@ let createUser = (data) => {
                     email: data.email,
                     password: hashPassword,
                     name: data.name,
+                    full_name: data.name,
                     gender: data.gender,
                     role_ID: data.role_ID,
                 })
